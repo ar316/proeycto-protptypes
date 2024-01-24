@@ -9,6 +9,8 @@ function CarInsurance  (marca, year, type){
     this.type = type
 }
 
+
+ 
 CarInsurance.prototype.CalulateInsurance = function(){
     let total = 0;
     let base = 2000;
@@ -29,12 +31,63 @@ CarInsurance.prototype.CalulateInsurance = function(){
 
     //leer el año
     const diferencia = new Date().getFullYear() - this.year;
-    cantidad = cantidad * (diferencia*0.3);
-    console.log(cantidad)
+    cantidad = ((diferencia*3) * cantidad/100) ;
+ 
+    switch(this.tipo){
+        case 'basico':
+            cantidad  = cantidad* 0.30;
+            break
+        case 'completo':
+            cantidad  = cantidad* 0.50;
+            break
+    }
+    console.log(cantidad);
+    return cantidad;
    
 }
 
 function UI (){
+}
+
+UI.prototype.MostrarCalculo = function (seguro,total){
+    const { marca, year, type} = seguro;
+    let textoMarca= "";
+    switch (marca) {
+        case "1": textoMarca = "Americano"
+            break;
+        case "2": textoMarca = "Asiatico"
+            break;
+        case "3": textoMarca = "Europeo"
+            break;
+        default:
+            break;
+    }
+
+    //creando el div que muestra el resultado 
+    
+    const resultado = document.querySelector('#resultado');
+    resultado.innerHTML ="";
+    const div = document.createElement('div');
+    div.classList = 'mt-10'
+    div.innerHTML =` <p class ="header" > Tu resumen</p>
+        <p class ="font-bold">Total = ${total} </p>
+        <p class ="font-bold">Marca = ${textoMarca} </p>
+        <p class ="font-bold">Año = ${year} </p>
+        <p class ="font-bold">Tipo = ${type} </p>
+    
+    `
+    
+
+    
+
+    //mostrando el spiner 
+    const spider = document.querySelector('#cargando');
+    spider.style.display = 'block';
+    setTimeout(() => {
+        spider.style.display = 'none';
+        resultado.appendChild(div);
+    }, 2000);
+
 }
 //fill the comob with years 
 UI.prototype.addYears = function(){
@@ -58,17 +111,20 @@ UI.prototype.MostrarMensaje = function(Mensaje, tipoMensaje){
         }, 2000);
     }else{
         div.classList.add('mensaje', 'correcto');
+        setTimeout(() => {
+            formulario.removeChild(div);
+        }, 2000);
     }
     div.textContent = Mensaje;
-    formulario.appendChild(div);
+    formulario.insertBefore(div, formulario.querySelector('#resultado'));
 
 }
 
-const y = new UI();
+const vista = new UI();
 
 
 document.addEventListener('DOMContentLoaded', ()=>{
-    y.addYears();
+    vista.addYears();
     formulario.addEventListener('submit',validarFormuluario);
 });
 
@@ -98,11 +154,14 @@ function validarFormuluario(e){
     } else if (basico) {
         tipo = radioBasico.value
     }
-    y.MostrarMensaje("cotizando...", "correcto")
+    vista.MostrarMensaje("cotizando...", "correcto")
 
     const insuranceCar = new CarInsurance(marca,year,tipo);
     console.log(insuranceCar);
-    insuranceCar.CalulateInsurance();
+   const totalSeguro  =  insuranceCar.CalulateInsurance();
+   console.log(totalSeguro);
+    vista.MostrarCalculo(insuranceCar, totalSeguro);
+
    
     
 }
